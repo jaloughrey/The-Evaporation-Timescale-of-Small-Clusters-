@@ -1,18 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[82]:
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import glob 
 from numba import jit 
-
-
-# In[83]:
-
 
 #FUNCTIONS:
 @jit
@@ -320,8 +310,6 @@ def read_snapshot(snapshot_filename):
 
 
 
-# In[84]:
-
 
 #read parameter file for constants 
 param = pd.read_csv('param_new.csv')
@@ -345,8 +333,6 @@ rho_ref = 0.04
 #seed = np.array(seed.split(),dtype=int)
 
 
-# In[83]:
-
 
 #run simulations for all directories in the config file (i.e. run simulation 10 times and save snapshots in different files)
 for i in range(len(seed)):
@@ -355,8 +341,6 @@ for i in range(len(seed)):
 
 snapshot_filename = f"snapshots/{loc}/SEED{seed[i]}/{stem}_{snapshot_count:04d}.csv"
 
-
-# In[104]:
 
 
 snap_titles = np.array(['N30_R0.65_VIR0.5_MSEGFALSE_T150MYR','N30_R0.65_VIR0.5_MSEGTRUE_T150MYR','N30_R0.65_VIR1.0_MSEGFALSE_T150MYR',
@@ -383,10 +367,9 @@ T_groups = [150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,150,
 for i in range()
 
 
-# In[120]:
 
 
-# MAIN
+#MAIN
 snap_titles = np.array(['N120_R1.00_VIR0.5_MSEGFALSE_T150MYR','N120_R1.00_VIR0.5_MSEGTRUE_T150MYR','N120_R1.00_VIR1.0_MSEGFALSE_T150MYR',
                     'N120_R1.00_VIR1.0_MSEGTRUE_T150MYR','N120_R1.00_VIR2.0_MSEGFALSE_T150MYR','N120_R1.00_VIR2.0_MSEGTRUE_T150MYR'])
 
@@ -443,9 +426,6 @@ for j in range(len(snap_titles)):
     
 
 
-# In[24]:
-
-
 # MAIN SINGLE TEST RUN
 
 #run simulations for all directories in the config file (i.e. run simulation 10 times and save snapshots in different files)
@@ -481,8 +461,6 @@ for i in range(1):
         t += dt
     
 
-
-# In[85]:
 
 
 #PLOT CLUSTER USING FILES
@@ -525,7 +503,7 @@ for i in range(N):
     ax.plot(x_trajectory[i], y_trajectory[i], z_trajectory[i], color=color)
 
 
-# Add legend for bound/unbound and move it slightly toward the center
+#add legend for bound/unbound and move it slightly toward the center
 bound_patch = plt.Line2D([0], [0], color='blue', label='Bound')
 unbound_patch = plt.Line2D([0], [0], color='red', label='Unbound')
 ax.legend(handles=[bound_patch, unbound_patch], loc='upper left', bbox_to_anchor=(0.15, 0.8))
@@ -541,7 +519,7 @@ ax.set_zlabel("Z (PC)")
 ax.set_box_aspect([1, 1, 1])
 
 #zoom limits
-zoom_factor = 6*radius  # Adjust this if needed
+zoom_factor = 6*radius  #adjust this if needed
 ax.set_xlim([-zoom_factor, zoom_factor])
 ax.set_ylim([-zoom_factor, zoom_factor])
 ax.set_zlim([-zoom_factor, zoom_factor])
@@ -550,7 +528,6 @@ plt.tight_layout()
 plt.show()
 
 
-# In[87]:
 
 
 import numpy as np
@@ -558,16 +535,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 import glob
-from mpl_toolkits.mplot3d import Axes3D  # Needed for 3D projection
+from mpl_toolkits.mplot3d import Axes3D  #3D projection
 
-# --- Initialize arrays ---
 x_trajectory, y_trajectory, z_trajectory = [], [], []
 bound_check = []
 
-# --- Load snapshot files ---
+
 snapshot_files = sorted(glob.glob(f"snapshots/{loc}/SEED880/{stem}*.csv"))
 
-# --- Load all snapshots ---
+#Load all snapshots 
 for file in snapshot_files:
     df = pd.read_csv(file, skiprows=[1])
     x_trajectory.append(df['x'].astype(float).values)
@@ -575,7 +551,7 @@ for file in snapshot_files:
     z_trajectory.append(df['z'].astype(float).values)
     bound_check.append(df['Bound'].astype(bool).values)
 
-x_trajectory = np.array(x_trajectory).T  # shape: (N, time)
+x_trajectory = np.array(x_trajectory).T  #shape: (N, time)
 y_trajectory = np.array(y_trajectory).T
 z_trajectory = np.array(z_trajectory).T
 bound_check = np.array(bound_check).T
@@ -583,7 +559,7 @@ bound_check = np.array(bound_check).T
 
 zoom_factor = 6 * radius
 
-# --- Set up plot ---
+#Set up plot 
 fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
 
@@ -597,19 +573,19 @@ ax.set_zlabel("Z (PC)")
 ax.set_title(f"{N}-Body Orbit Simulation ({t_end:.1f} Myrs)")
 ax.set_box_aspect([1, 1, 1])
 
-# Legend
+#legend
 bound_patch = plt.Line2D([0], [0], color='blue', label='Bound')
 unbound_patch = plt.Line2D([0], [0], color='red', label='Unbound')
 ax.legend(handles=[bound_patch, unbound_patch], loc='upper left', bbox_to_anchor=(0.15, 0.8))
 
-# --- Initialize lines ---
+#initialize lines 
 lines = []
 for i in range(N):
     color = 'blue' if bound_check[i, -1] else 'red'
     line, = ax.plot([], [], [], color=color, lw=1)
     lines.append(line)
 
-# --- Animation update function ---
+#Animation update function 
 def update(frame):
     for i, line in enumerate(lines):
         line.set_data(x_trajectory[i, :frame], y_trajectory[i, :frame])
@@ -618,16 +594,14 @@ def update(frame):
 
     return lines
 
-# --- Create animation ---
+#create animation 
 anim = FuncAnimation(fig, update, frames=len(snapshot_files), interval=50, blit=False)
 
-# --- Save as GIF ---
+#Save as GIF 
 anim.save("nbody_trajectories.gif", writer=PillowWriter(fps=15))
 
 plt.close()
 
-
-# In[35]:
 
 
 #PLOT CLUSTER USING FILES
@@ -668,7 +642,7 @@ for i, seed_dir in enumerate(seed_dirs):
     z_trajectory = np.array(z_trajectory).T
     bound_check = np.array(bound_check).T
 
-    # Create subplot
+    #create subplot
     ax = fig.add_subplot(rows, cols, i + 1, projection='3d')
 
 
@@ -700,8 +674,6 @@ plt.subplots_adjust(wspace=0.01, hspace=0.15, top=0.95, bottom=0.03)
 plt.show()
 
 
-# In[36]:
-
 
 #PLOT CLUSTER USING FILES
 
@@ -720,7 +692,7 @@ x_trajectory, y_trajectory, z_trajectory = [], [], []
 bound_check = []
 
 
-#Loop over each snapshot 
+#Loop each snapshot 
 for file in snapshot_files:
     ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90_initial = read_snapshot(file)
     df = pd.read_csv(file, skiprows=[1])  #Skip metadata row with energy and time information
@@ -740,7 +712,7 @@ y_trajectory = np.array(y_trajectory).T
 z_trajectory = np.array(z_trajectory).T
 bound_check = np.array(bound_check).T
 
-# Create subplot
+#create subplot
 ax = fig.add_subplot(rows, cols, i + 1, projection='3d')
 
 
@@ -771,8 +743,6 @@ plt.suptitle(f"Trajectories from 10 SEED Simulations", fontsize=16)
 plt.subplots_adjust(wspace=0.01, hspace=0.15, top=0.95, bottom=0.03)
 plt.show()
 
-
-# In[ ]:
 
 
 #ENERGY PLOTS
@@ -810,10 +780,8 @@ plt.legend()
 plt.show()
 
 
-# In[ ]:
 
-
-# Set up subplots
+#set up subplots
 fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(12, 20))
 axes = axes.flatten()
 
@@ -827,8 +795,8 @@ for i, seed_dir in enumerate(seed_dirs):
         df = pd.read_csv(file)
 
         metadata = df.iloc[0]
-        time = float(metadata["ay"])           # time in ay column
-        total_energy = float(metadata["Mass"]) # energy in Mass column
+        time = float(metadata["ay"])           #time in ay column
+        total_energy = float(metadata["Mass"]) #energy in Mass column
 
         times.append(time)
         total_energies.append(total_energy)
@@ -844,18 +812,14 @@ for i, seed_dir in enumerate(seed_dirs):
     ax.set_ylabel("ΔE / E0")
     ax.grid(True)
 
-# Adjust layout
+#adjust layout
 plt.suptitle("Fractional Energy Change Over Time", fontsize=16)
 plt.subplots_adjust(wspace=0.3, hspace=0.4, top=0.94, bottom=0.04)
 plt.show()
 
 
-# In[ ]:
-
 
 #plot kinetic energy
-
-
 times = []
 kinetic_energies = []
 potential_energies = []
@@ -891,12 +855,7 @@ plt.legend()
 plt.show()
 
 
-# In[ ]:
-
-
 #plot timestep over time 
-
-
 times = []
 kinetic_energies = []
 timesteps = []
@@ -924,10 +883,8 @@ plt.legend()
 plt.show()
 
 
-# In[ ]:
 
-
-# Set up subplots
+#set up subplots
 fig, axes = plt.subplots(nrows=5, ncols=2, figsize=(12, 20))
 axes = axes.flatten()
 
@@ -941,8 +898,8 @@ for i, seed_dir in enumerate(seed_dirs):
         df = pd.read_csv(file)
         metadata = df.iloc[0]
 
-        time = float(metadata["ay"])       # time in 'ay' column
-        timestep = float(metadata["adotx"])  # dt in 'adotx' column
+        time = float(metadata["ay"])       #time in 'ay' column
+        timestep = float(metadata["adotx"])  #dt in 'adotx' column
 
         times.append(time)
         timesteps.append(timestep)
@@ -955,32 +912,7 @@ for i, seed_dir in enumerate(seed_dirs):
     ax.set_ylabel("dt (Myr)")
     ax.grid(True)
 
-# Adjust layout
+#adjust layout
 plt.suptitle("Timestep Over Time", fontsize=16)
 plt.subplots_adjust(wspace=0.3, hspace=0.4, top=0.94, bottom=0.04)
 plt.show()
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
