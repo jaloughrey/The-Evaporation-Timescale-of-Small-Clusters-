@@ -1,0 +1,8 @@
+#Ignore all snapshot data
+snapshots/*
+!snapshots/.gitkeep
+
+#Python ignores
+__pycache__/
+*.pyc
+venv/
