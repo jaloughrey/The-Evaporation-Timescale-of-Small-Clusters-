@@ -1,16 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[34]:
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import glob 
-
-
-# In[35]:
 
 
 #FUNCTIONS:
@@ -192,8 +183,6 @@ def write_snapshot(snapshot_filename, x, y, z, vx, vy, vz, ax, ay, az, adotx, ad
     print(f"Snapshot saved: {snapshot_filename} | Time: {t:.2f} years | total energy: {E_total:.3e} | Q: {Q:.3f}")
 
 
-# In[36]:
-
 
 #read parameter file 
 param = pd.read_csv('param_new.csv')
@@ -213,8 +202,6 @@ IC_stem = param['IC'].values[0]
 
 #seed = np.array(seed.split(),dtype=int)
 
-
-# In[22]:
 
 
 for i in range(len(seed)):
@@ -311,8 +298,6 @@ for i in range(len(seed)):
     #save initial conditions to the csv file
     write_snapshot(IC_filename, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, softening, t, dt, R90)
 
-
-# In[37]:
 
 
 #DEFINE INITIAL CONDITIONS FROM PARAMETER FILE 
@@ -412,9 +397,6 @@ for i in range(1):
     write_snapshot(IC_filename, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, softening, t, dt, R90)
 
 
-# In[13]:
-
-
 for i in range(len(seed)):
     
     #set random seed 
@@ -423,13 +405,6 @@ for i in range(len(seed)):
 IC_filename = f"IC_files/{IC_stem}_{seed[i]}.csv"
 
 
-# In[ ]:
-
-
-
-
-
-# In[38]:
 
 
 fig = plt.figure(figsize=(8, 8))
@@ -465,32 +440,10 @@ ax.set_zlim([-zoom_factor, zoom_factor])
 plt.show()
 
 
-# In[181]:
 
 
 ICS = pd.read_csv(IC_filename)
 print(ICS)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
 
 
 
