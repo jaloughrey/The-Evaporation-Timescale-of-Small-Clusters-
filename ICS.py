@@ -5,23 +5,39 @@ import glob
 
 
 #read parameter file for constants 
+#N: number of stars
+#G: gravitational constant ()
+#radius: desired cluster radius (pc)
+#softening: buffer to avoid singularties ()
+#eta: accuracy parameter ()
+#alpha_virial: virial ratio (1.0 = equilibrium)
+#mass_segregated: boolean value to toggle mass segregation in clusters
+#t_end: desired end time (Myr)
+#n_snap: desired number of snapshot files
+#loc: ensemble directory
+#seed: desired random seed
+#stem: snapshot file naming
+#IC_stem: Initial condition file naming 
 N, G, radius, softening, eta, alpha_virial, mass_segregated, t_end, n_snap, loc, seed, stem, IC_stem = read_param('param.csv')
 
 
-#DEFINE INITIAL CONDITIONS FROM PARAMETER FILE 
+#DEFINE INITIAL CLUSTER CONDITIONS FROM PARAMETERS
     
 #set random seed 
 np.random.seed(seed)  
 
+#define masses based on chabrier distribution
 #M = chabrier_log_normal(N)
 M = chabrier_log_normal_scaled(N) 
 
+#approximation of standard deviation
 std_dev = radius / 3
 
+#define positions of stars 
 if mass_segregated == True:
     x, y, z = mass_segregated_positions(N, M, base_sigma=std_dev, k=0.2, segregation_fraction=0.2)
 else:
-     #initialize positions (normal distribution centered at the origin)
+    #initialize positions (normal distribution centered at the origin)
     x = np.random.normal(0, std_dev, N)  
     y = np.random.normal(0, std_dev, N)  
     z = np.random.normal(0, std_dev, N)  
@@ -37,7 +53,7 @@ z -= z_com
 r = np.sqrt(x**2 + y**2 + z**2)
 
 
-#initial lagrange radius
+#initial lagrange radius (90% enclosed radius)
 #sort by radius
 sorted_indices = np.argsort(r)
 r_sorted = r[sorted_indices]
@@ -53,9 +69,9 @@ print(R90)
 R_max = r_sorted[cumulative_mass >= target_mass][-1]
 print(R_max)
     
-#Step 2: Scale masses to match target density
+#scale masses to match target density
     
-#density calculations to scale total mass
+#density calculations 
 M_enc = np.sum(M)
     
 vol = (4/3)*np.pi*R_max**3
@@ -64,10 +80,10 @@ rho_target = 10
 
 scale_factor = rho_target / rho_sample
 M *= scale_factor
-print(M)
 
+#Define initial velocities based on virial ratio
 
-#random velocities (in m/s)
+#start with random velocities (in m/s)
 vx = np.random.uniform(-30000, 30000, N)  
 vy = np.random.uniform(-30000, 30000, N)
 vz = np.random.uniform(-30000, 30000, N)
@@ -97,14 +113,12 @@ dt = eta * min(a_mag/adot_mag)
 
 #update filename 
 IC_filename = f"IC_files/{IC_stem}_{seed}.csv"
-print(IC_filename)
 
 #save initial conditions to the csv file
 write_snapshot(IC_filename, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, softening, t, dt, R90)
 
 
 #Plot the intial cluster
-
 fig = plt.figure(figsize=(8, 8))
 ax = fig.add_subplot(111, projection='3d')
 
@@ -112,7 +126,7 @@ ax = fig.add_subplot(111, projection='3d')
 norm = plt.Normalize(np.min(M), np.max(M))
 cmap = plt.cm.inferno
 
-#convert to parsec and to solar masses for clearer axis
+#convert to parsec and to solar masses for clear axis
 
 print(x)
 print(np.sum(M))
@@ -124,12 +138,13 @@ sc = ax.scatter(x, y, z, c=M, cmap=cmap, s=40 * (M / np.max(M)), alpha=0.7, edge
 cbar = plt.colorbar(sc, ax=ax, shrink=0.6)
 cbar.set_label("Stellar Mass (M☉)")
 
-#labels & Formatting
+#labels & formatting
 ax.set_xlabel("X (pc)")
 ax.set_ylabel("Y (pc)")
 ax.set_zlabel("Z (pc)")
 ax.view_init(elev=30, azim=45)  #viewing angle
 
+#adjust zoom factor if needed
 zoom_factor = (radius)
 ax.set_xlim([-zoom_factor, zoom_factor])
 ax.set_ylim([-zoom_factor, zoom_factor])
