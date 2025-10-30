@@ -377,3 +377,22 @@ def read_snapshot(snapshot_filename):
     bound = file['Bound'].values
     
     return ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90_initial
+
+    #READ PARAMETER FILE
+def read_param(param_file):
+    param = pd.read_csv(param_file)
+    N = param['N'].values[0]
+    G = param['G'].values[0]
+    radius = param['radius'].values[0]
+    softening = param['softening'].values[0]
+    eta = param['eta'].values[0]
+    alpha_virial = param['alpha_virial'].values[0]
+    mass_segregated = param['mass_segregated'].values[0]
+    t_end = param['t_end'].values[0]
+    n_snap = param['n_snap'].values[0]
+    loc = param['loc'].values[0]
+    seed = param['seed'].values[0]
+    stem = param['stem'].values[0]
+    IC_stem = param['IC'].values[0]
+
+    return N, G, radius, softening, eta, alpha_virial, mass_segregated, t_end, n_snap, loc, seed, stem, IC_stem 
