@@ -1,6 +1,5 @@
 #Ignore all snapshot data
-snapshots/*
-!snapshots/.gitkeep
+snapshots/.gitkeep
 
 #Python ignores
 __pycache__/
