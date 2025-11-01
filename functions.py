@@ -10,7 +10,7 @@ from numba import jit
 
     #ACCELERATION FUNCTION
 @jit
-def acceleration(x, y, z, vx, vy, vz, softening, M, G):
+def acceleration(N, x, y, z, vx, vy, vz, softening, M, G):
     ax = np.zeros(N)
     ay = np.zeros(N)
     az = np.zeros(N)
@@ -58,7 +58,7 @@ def acceleration(x, y, z, vx, vy, vz, softening, M, G):
 
     #ENERGY FUNCTION
 @jit
-def energy(x, y, z, vx, vy, vz, M, G, softening):
+def energy(N, x, y, z, vx, vy, vz, M, G, softening):
     #centre of velocity as temporary variable 
     vxcom  = np.sum(vx*M)/np.sum(M)
     vycom  = np.sum(vy*M)/np.sum(M)
@@ -161,17 +161,16 @@ def chabrier_log_normal_scaled(N, m_min=0.01, m_max=1.0):
   #CHECK/ANALYSIS FUNCTIONS
 
     #EVAPORATION INDEX CALCULATION AND DEFINING EVAPORATED POINT OF CLUSTER
-def evap_check(bound, R90_initial):
+def evap_check(N, x, y, z, M, bound, R90_initial):
     k_1, k_2, k_3 = 0.66, 1, 0.11 #weighting constants
     N_bound = np.sum(bound) #number of bound stars 
     rho_ref = 0.04 #refrance density
     R90, rho = lagrange90(x, y, z, M, bound)#current lagrange and density 
-    print(rho)
     
     E = k_1*(1-N_bound/N)+k_2*(rho_ref/(rho+rho_ref))+k_3*(R90/R90_initial)#calculation of index
-    print(f'term 1:{k_1*(1-N_bound/N)}')
-    print(f'term 2:{k_2*(rho_ref/(rho+rho_ref))}')
-    print(f'term 3:{k_3*(R90/R90_initial)}')
+    print(f'index term 1:{k_1*(1-N_bound/N)}')
+    print(f'index term 2:{k_2*(rho_ref/(rho+rho_ref))}')
+    print(f'index term 3:{k_3*(R90/R90_initial)}')
 
     if E >= 1:
         check_evap = True
@@ -220,10 +219,20 @@ def lagrange90(x, y, z, M, bound):
     
     return R90, rho
 
+
+    #SMOOTHING FUNCTION
+def trailing_smooth(E, window_size):
+    smoothed_E = np.zeros_like(E)
+    for i in range(len(E)):
+        start = max(0, i - window_size)
+        smoothed_E[i] = np.mean(E[start:i+1])
+    return smoothed_E
+
+
   #INTEGRATORS 
 
     #VELOCITY VERLET 
-def velocity_verlet(x, y, z, vx, vy, vz, ax, ay, az, M, G, dt):
+def velocity_verlet(x, y, z, vx, vy, vz, ax, ay, az, softening, M, G, dt):
     
     #update positions 
     x = x + vx * dt + 0.5 * ax * dt*dt
@@ -242,7 +251,7 @@ def velocity_verlet(x, y, z, vx, vy, vz, ax, ay, az, M, G, dt):
 
     #HERMITE 4TH ORDER INTEGRATION 
 @jit
-def hermite_4th_order(x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, dt, eta):
+def hermite_4th_order(N, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, softening, M, G, dt, eta):
     dt2 = dt * dt
     dt3 = dt * dt * dt 
     
@@ -256,7 +265,7 @@ def hermite_4th_order(x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G
     vz_pred = vz + az * dt + 0.5 * adotz * dt2
 
     #accelerations and jerks at predicted positions
-    ax_pred, ay_pred, az_pred, adotx_pred, adoty_pred, adotz_pred = acceleration(x_pred, y_pred, z_pred, vx_pred, vy_pred, vz_pred, softening, M, G)
+    ax_pred, ay_pred, az_pred, adotx_pred, adoty_pred, adotz_pred = acceleration(N, x_pred, y_pred, z_pred, vx_pred, vy_pred, vz_pred, softening, M, G)
 
     dt_new = timestep(ax, ay, az, adotx, adoty, adotz, ax_pred, ay_pred, az_pred, adotx_pred, adoty_pred, adotz_pred, dt, eta)
     
@@ -303,11 +312,11 @@ def timestep(ax, ay, az, adotx, adoty, adotz, ax_pred, ay_pred, az_pred, adotx_p
   #READ WRITE FILE FUNCTIONS 
 
     #WRITE SNAPSHOT
-def write_snapshot(snapshot_filename, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, softening, time, dt, R90_initial):
+def write_snapshot(snapshot_filename, N, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, softening, t, dt, R90_initial):
     
     #calculate energies and evaporation at the snapshot time (ensure energy conservation) 
-    KE_individual, KE, PE_individual, PE, E_individual, E_total, bound = energy(x, y, z, vx, vy, vz, M, G, softening)
-    evap, R90, rho, check_evap = evap_check(bound, R90_initial)
+    KE_individual, KE, PE_individual, PE, E_individual, E_total, bound = energy(N, x, y, z, vx, vy, vz, M, G, softening)
+    evap, R90, rho, check_evap = evap_check(N, x, y, z, M, bound, R90_initial)
 
     Q = 2 * KE / abs(PE)  #virial ratio
 
