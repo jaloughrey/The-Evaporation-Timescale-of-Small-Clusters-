@@ -2,6 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 import glob
+import functions as func
+
+N, G, radius, softening, eta, alpha_virial, mass_segregated, t_end, n_snap, loc, seed, stem, IC_stem = func.read_param('param.csv')
+seed_dirs = sorted(glob.glob(f"snapshots/{loc}/SEED*"))
 
 #############################################################################################
 
@@ -21,11 +25,11 @@ for seed_dir in sorted(glob.glob(f"snapshots/{loc}/SEED*")):
     lagrangian_radii = {f: [] for f in mass_fractions}
 
     for file in snapshot_files:
-        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90, rho, evap = read_snapshot(file)
+        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90 = func.read_snapshot(file)
         times.append(time)
 
         #center of mass
-        x_com, y_com, z_com = center_of_mass(x, y, z, M)
+        x_com, y_com, z_com = func.center_of_mass(x, y, z, M)
         x -= x_com
         y -= y_com
         z -= z_com
@@ -102,10 +106,10 @@ for seed_dir in seed_dirs:
     R90_values = []
 
     #get R90_initial from first snapshot
-    ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90_initial, rho, evap = read_snapshot(snapshot_files[0])
+    ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90_initial = func.read_snapshot(snapshot_files[0])
 
     for file in snapshot_files:
-        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90, rho, evap = read_snapshot(file)
+        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90 = func.read_snapshot(file)
         times.append(time)
         R90_values.append(R90)
 
@@ -159,7 +163,7 @@ for seed_dir in seed_dirs:
     bound_fraction = []
 
     for file in snapshot_files:
-        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90, rho, evap = read_snapshot(file)
+        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90 = func.read_snapshot(file)
         num_bound = np.sum(bound)
         bound_frac = num_bound / N
         times.append(time)
@@ -243,17 +247,17 @@ for seed_dir in seed_dirs:
     times = []
     density_term = []
 
-    ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90_initial, rho, evap = read_snapshot(snapshot_files[0])
+    ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90_initial = func.read_snapshot(snapshot_files[0])
     print(R90_initial)
     for file in snapshot_files:
-        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90, rho, evap = read_snapshot(file)
-        _, R90, rho, _, _, density, _ = evap_check(bound, R90_initial)
+        ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, time, dt_initial, R90 = func.read_snapshot(file)
+        E, R90, rho, check_evap = func.evap_check(N, x, y, z, M, bound, R90_initial)
         times.append(time)
-        density_term.append(density)
+        density_term.append(rho)
 
     times = np.array(times)
     density_term = np.array(density_term)
-    density_term = trailing_smooth(density_term, window_size =4)
+    density_term = func.trailing_smooth(density_term, window_size =4)
     
 
     #interpolate
@@ -303,7 +307,7 @@ for seed_dir in seed_dirs:
     evaps = []
 
     for file in snapshot_files:
-        *_, time, _, _, _, evap = read_snapshot(file)
+        *_, time, _, _, _, evap = func.read_snapshot(file)
         times.append(time)
         evaps.append(evap)
 
