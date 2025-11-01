@@ -1,3 +1,4 @@
 N,G,radius,softening,eta,alpha_virial,mass_segregated,t_end,n_snap,loc,seed,stem,IC
-30,4.302e-3,0.65,0.005,0.00005,1.0,True,150,200,N30_R0.65_VIR1.0_MSEGTRUE_T150MYR,924,snapshot,ICS
+30,4.302e-3,0.65,0.005,0.00005,1.0,True,150,200,test,100,snapshot,ICS
+
 
