@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import glob 
+import functions as func
 
 
 #read parameter file for constants 
@@ -18,8 +19,8 @@ import glob
 #seed: desired random seed
 #stem: snapshot file naming
 #IC_stem: Initial condition file naming 
-N, G, radius, softening, eta, alpha_virial, mass_segregated, t_end, n_snap, loc, seed, stem, IC_stem = read_param('param.csv')
-
+N, G, radius, softening, eta, alpha_virial, mass_segregated, t_end, n_snap, loc, seed, stem, IC_stem = func.read_param('param.csv')
+print(loc)
 
 #DEFINE INITIAL CLUSTER CONDITIONS FROM PARAMETERS
     
@@ -28,14 +29,14 @@ np.random.seed(seed)
 
 #define masses based on chabrier distribution
 #M = chabrier_log_normal(N)
-M = chabrier_log_normal_scaled(N) 
+M = func.chabrier_log_normal_scaled(N) 
 
 #approximation of standard deviation
 std_dev = radius / 3
 
 #define positions of stars 
 if mass_segregated == True:
-    x, y, z = mass_segregated_positions(N, M, base_sigma=std_dev, k=0.2, segregation_fraction=0.2)
+    x, y, z = func.mass_segregated_positions(N, M, base_sigma=std_dev, k=0.2, segregation_fraction=0.2)
 else:
     #initialize positions (normal distribution centered at the origin)
     x = np.random.normal(0, std_dev, N)  
@@ -43,7 +44,7 @@ else:
     z = np.random.normal(0, std_dev, N)  
 
 #center of mass (COM)
-x_com, y_com, z_com = center_of_mass(x, y, z, M)
+x_com, y_com, z_com = func.center_of_mass(x, y, z, M)
 
 #shift positions to place COM at the origin
 x -= x_com
@@ -65,9 +66,7 @@ total_mass = np.sum(M_sorted)
     
 target_mass = 0.9 * total_mass
 R90 = r_sorted[cumulative_mass >= target_mass][0]
-print(R90)
 R_max = r_sorted[cumulative_mass >= target_mass][-1]
-print(R_max)
     
 #scale masses to match target density
     
@@ -89,7 +88,7 @@ vy = np.random.uniform(-30000, 30000, N)
 vz = np.random.uniform(-30000, 30000, N)
 
 #initial kinetic and potential energy
-_, KE_initial,_, PE_initial,_, E_total_initial,_ = energy(x, y, z, vx, vy, vz, M, G, softening)
+_, KE_initial,_, PE_initial,_, E_total_initial,_ = func.energy(N, x, y, z, vx, vy, vz, M, G, softening)
 
 #scale velocities for desired virial ratio
 scaling_factor = np.sqrt(alpha_virial / (2*KE_initial / abs(PE_initial)))
@@ -98,10 +97,10 @@ vy *= scaling_factor
 vz *= scaling_factor
 
 #intial virialised kinetic and potential energy
-_, KE,_, PE,_, E_total,_ = energy(x, y, z, vx, vy, vz, M, G, softening)
+_, KE,_, PE,_, E_total,_ = func.energy(N, x, y, z, vx, vy, vz, M, G, softening)
 
 #intial acceleration 
-ax, ay, az, adotx, adoty, adotz = acceleration(x, y, z, vx, vy, vz, softening, M, G)
+ax, ay, az, adotx, adoty, adotz = func.acceleration(N, x, y, z, vx, vy, vz, softening, M, G)
 
 #start time 
 t=0
@@ -115,7 +114,7 @@ dt = eta * min(a_mag/adot_mag)
 IC_filename = f"IC_files/{IC_stem}_{seed}.csv"
 
 #save initial conditions to the csv file
-write_snapshot(IC_filename, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, softening, t, dt, R90)
+func.write_snapshot(IC_filename, N, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, M, G, softening, t, dt, R90)
 
 
 #Plot the intial cluster
@@ -127,9 +126,6 @@ norm = plt.Normalize(np.min(M), np.max(M))
 cmap = plt.cm.inferno
 
 #convert to parsec and to solar masses for clear axis
-
-print(x)
-print(np.sum(M))
     
 #scatter
 sc = ax.scatter(x, y, z, c=M, cmap=cmap, s=40 * (M / np.max(M)), alpha=0.7, edgecolors='k')
