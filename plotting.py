@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import glob 
+import functions as func
 
 #################################################################################
 
@@ -12,27 +13,29 @@ x_trajectory, y_trajectory, z_trajectory = [], [], []
 bound_check = []
 
 #load snapshot files
-snapshot_files = sorted(glob.glob(f"snapshots/{loc}/SEED_{seed}/{stem}*.csv"))
+N, G, radius, softening, eta, alpha_virial, mass_segregated, t_end, n_snap, loc, seed, stem, IC_stem = func.read_param('param.csv')
+snapshot_files = sorted(glob.glob(f"snapshots/{loc}/SEED{seed}/{stem}*.csv"))
 
 #loop over each snapshot and extract  
 for file in snapshot_files:
-    ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, t, dt, R90 = read_snapshot(file)
-    df = pd.read_csv(file, skiprows=[1])  #Skip energydata row with energy and time information
-    x = df['x'].astype(float).values
-    y = df['y'].astype(float).values
-    z = df['z'].astype(float).values
-    
+    ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, t, dt, R90 = func.read_snapshot(file)
+
     #append positions at each snapshot  to array
     x_trajectory.append(x)
     y_trajectory.append(y)
     z_trajectory.append(z)
     bound_check.append(bound)
+    
 
 #transpose 
 x_trajectory = np.array(x_trajectory).T
 y_trajectory = np.array(y_trajectory).T
 z_trajectory = np.array(z_trajectory).T
 bound_check = np.array(bound_check).T
+print(x_trajectory)
+print(y_trajectory)
+print(z_trajectory)
+print(bound_check)
 
 #plot in 3D
 fig = plt.figure(figsize=(10, 8))
@@ -81,15 +84,17 @@ x_trajectory, y_trajectory, z_trajectory = [], [], []
 bound_check = []
 
 #load snapshot files
-snapshot_files = sorted(glob.glob(f"snapshots/{loc}/SEED880/{stem}*.csv"))
+snapshot_files = sorted(glob.glob(f"snapshots/{loc}/SEED{seed}/{stem}*.csv"))
 
 #load snapshots and extract position data
 for file in snapshot_files:
-    df = pd.read_csv(file, skiprows=[1])
-    x_trajectory.append(df['x'].astype(float).values)
-    y_trajectory.append(df['y'].astype(float).values)
-    z_trajectory.append(df['z'].astype(float).values)
-    bound_check.append(df['Bound'].astype(bool).values)
+    ID, M, x, y, z, vx, vy, vz, ax, ay, az, adotx, adoty, adotz, KE_ind, PE_ind, E_ind, bound, E_total, KE, PE, alpha_virial, t, dt, R90 = func.read_snapshot(file)
+
+    #append positions at each snapshot  to array
+    x_trajectory.append(x)
+    y_trajectory.append(y)
+    z_trajectory.append(z)
+    bound_check.append(bound)
 
 x_trajectory = np.array(x_trajectory).T  #shape: (N, time)
 y_trajectory = np.array(y_trajectory).T
