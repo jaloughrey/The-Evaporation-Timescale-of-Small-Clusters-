@@ -1,1 +1,1 @@
-# The-Evaporation-Timescale-of-Small-Clusters
+# Evaporation Timescale of Small Clusters
